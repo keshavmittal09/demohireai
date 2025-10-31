@@ -11,6 +11,57 @@ import { toast } from 'sonner';
 import { Upload, X, Plus, TrendingUp } from 'lucide-react';
 import { ScoreBadge } from '@/components/ScoreBadge';
 
+
+// inside CandidateDashboard component (example)
+import React, { useEffect, useState } from 'react'
+import { supabase } from '../lib/supabaseClient'
+import ResumeUpload from '../components/ResumeUpload'
+import { useAuth } from '../contexts/AuthContext'
+
+export const CandidateDashboard: React.FC = () => {
+  const { user } = useAuth()
+  const [applications, setApplications] = useState<any[]>([])
+
+  useEffect(() => {
+    const load = async () => {
+      if (!user?.id) return
+      const { data } = await supabase
+        .from('applications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+      setApplications(data ?? [])
+    }
+    load()
+  }, [user?.id])
+
+  return (
+    <div>
+      <h1>Candidate Dashboard</h1>
+
+      <section>
+        <h2>Upload Resume</h2>
+        <ResumeUpload />
+      </section>
+
+      <section>
+        <h2>Your Resumes</h2>
+        <ul>
+          {applications.map(app => (
+            <li key={app.id}>
+              <div>{app.resume_path} — {new Date(app.created_at).toLocaleString()}</div>
+              <a href={app.resume_public_url} target="_blank" rel="noreferrer">View</a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
+  )
+}
+
+
+
+
 export const CandidateDashboard = () => {
   const { user } = useAuth();
   const [profile, setProfile] = useState({
